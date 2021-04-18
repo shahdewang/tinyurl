@@ -1,58 +1,74 @@
-# Compiled class file
+# Compiled source #
+###################
+*.com
 *.class
+*.dll
+*.exe
+*.o
+*.so
 
-# Log file
+# OS generated files #
+######################
+.DS_Store*
+ehthumbs.db
+Icon?
+Thumbs.db
+
+# Logs and databases #
+######################
 *.log
+**/log
 
-# BlueJ files
-*.ctxt
+# Editor Files #
+################
+*~
+*.swp
 
-# Package Files #
-*.jar
-*.war
-*.nar
-*.ear
-*.zip
-*.tar.gz
-*.rar
-
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-
-HELP.md
+# Gradle Files #
+################
 .gradle
-build/
-!gradle/wrapper/gradle-wrapper.jar
-!**/src/main/**/build/
-!**/src/test/**/build/
+.m2
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+# Build output directies #
+##########################
+**/target
+**/build
+**/src/generated
+*/bin
+*/integrationTest/bin
+**/classes
 
-### IntelliJ IDEA ###
+# IntelliJ specific files/directories #
+#######################################
+out
 .idea
+*.ipr
 *.iws
 *.iml
-*.ipr
-out/
-!**/src/main/**/out/
-!**/src/test/**/out/
+atlassian-ide-plugin.xml
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Eclipse specific files/directories #
+######################################
+.classpath
+.project
+.settings
+.metadata
 
-### VS Code ###
-.vscode/
+# From local runners #
+######################
+tomcat.8080/
+Tomcat\ 7.launch
+
+# From npm #
+############
+node_modules/
+
+# From generator #
+##################
+.ci/
+.tmp/
+
+# Newt #
+########
+.newt-cache/
+.newt.netflix_environment.sh
