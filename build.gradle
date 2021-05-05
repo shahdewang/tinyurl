@@ -4,6 +4,7 @@ plugins {
     id 'org.springframework.boot' version '2.4.5'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
     id 'com.bmuschko.docker-spring-boot-application' version '6.7.0'
+    id 'nu.studer.jooq' version '5.2.1'
 }
 
 group = 'com.bufferstack'
@@ -14,10 +15,38 @@ repositories {
     mavenCentral()
 }
 
+ext {
+    jacksonVersion = "2.12.3"
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-jooq'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+
     implementation 'org.springdoc:springdoc-openapi-ui:1.5.2'
+
+    implementation 'org.apache.curator:curator-framework:5.1.0'
+    implementation 'org.apache.curator:curator-recipes:5.1.0'
+    implementation 'org.zalando:problem-spring-web:0.23.0'
+    implementation 'com.evanlennick:retry4j:0.15.0'
+
+    implementation "com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-core:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-guava:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVersion}"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names:${jacksonVersion}"
+
+    implementation 'io.micrometer:micrometer-registry-prometheus'
+
+    runtimeOnly 'org.postgresql:postgresql'
+
+    jooqGenerator 'org.postgresql:postgresql:42.2.14'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
@@ -28,6 +57,52 @@ test {
     useJUnitPlatform()
 }
 
+jooq {
+    version = '3.14.7'  // default (can be omitted)
+    edition = nu.studer.gradle.jooq.JooqEdition.OSS  // default (can be omitted)
+
+    configurations {
+        main {  // name of the jOOQ configuration
+            generateSchemaSourceOnCompilation = true  // default (can be omitted)
+
+            generationTool {
+                logging = org.jooq.meta.jaxb.Logging.WARN
+                jdbc {
+                    driver = 'org.postgresql.Driver'
+                    url = 'jdbc:postgresql://localhost:5432/tinyurl'
+                    user = 'postgres'
+                    password = 'pwd123'
+                    properties {
+                        property {
+                            key = 'ssl'
+                            value = 'false'
+                        }
+                    }
+                }
+                generator {
+                    name = 'org.jooq.codegen.DefaultGenerator'
+                    database {
+                        name = 'org.jooq.meta.postgres.PostgresDatabase'
+                        inputSchema = 'public'
+                    }
+                    generate {
+                        deprecated = false
+                        records = true
+                        immutablePojos = true
+                        fluentSetters = true
+                        javaTimeTypes = true
+                    }
+                    target {
+                        packageName = 'com.bufferstack.tinuyrl.jooq'
+                        directory = 'build/generated-src/jooq/main'  // default (can be omitted)
+                    }
+                    strategy.name = 'org.jooq.codegen.DefaultGeneratorStrategy'
+                }
+            }
+        }
+    }
+}
+
 docker {
     springBootApplication {
         baseImage = 'adoptopenjdk/openjdk11:jdk-11.0.2.9-alpine-slim'
@@ -35,3 +110,6 @@ docker {
         jvmArgs = []
     }
 }
+
+// Configuring the jOOQ generation task to participate in incremental builds
+tasks.named('generateJooq').configure { allInputsDeclared = true }

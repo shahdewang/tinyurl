@@ -1,9 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "tinyurl-k8s-chart.fullname" . }}
+  name: {{ include "tinyurl-chart.fullname" . }}
   labels:
-    {{- include "tinyurl-k8s-chart.labels" . | nindent 4 }}
+    {{- include "tinyurl-chart.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -12,4 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "tinyurl-k8s-chart.selectorLabels" . | nindent 4 }}
+    {{- include "tinyurl-chart.selectorLabels" . | nindent 4 }}

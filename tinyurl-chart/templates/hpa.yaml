@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "tinyurl-k8s-chart.fullname" . }}
+  name: {{ include "tinyurl-chart.fullname" . }}
   labels:
-    {{- include "tinyurl-k8s-chart.labels" . | nindent 4 }}
+    {{- include "tinyurl-chart.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "tinyurl-k8s-chart.fullname" . }}
+    name: {{ include "tinyurl-chart.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:
