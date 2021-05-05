@@ -1,1 +1,52 @@
+spring:
+  security:
+    user:
+      name: "user@tinyurl.com"
+      password: "8h&=Yww8NT$zMm2"
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/tinyurl"
+    username: postgres
+    password: pwd123
+    driver-class-name: "org.postgresql.Driver"
+
+server:
+  port: 9091
+
+
+management:
+  server:
+    port: 9091
+  endpoints:
+    enabled-by-default: true
+    web:
+      exposure:
+        include: '*'
+    endpoint:
+      info:
+        enabled: true
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      group:
+        readiness:
+          include: readinessState,identifierStreamReadinessIndicator
+  health:
+    livenessstate:
+      enabled: true
+    readinessstate:
+      enabled: true
+  metrics:
+    enable: true
+    use-global-registry: false
+    distribution:
+      percentiles-histogram:
+        http:
+          server:
+            requests: true
+
+
+tinyurl:
+  reservation-size: 1000
+  identifier-stream: "ZK"
 

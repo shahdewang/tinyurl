@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url: "jdbc:postgresql://localhost:5432/tinyurl"
+    username: postgres
+    password: pwd123
+
+
+tinyurl:
+  zookeeper:
+    connect-string: "localhost:2181"

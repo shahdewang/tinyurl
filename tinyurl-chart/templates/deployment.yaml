@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "tinyurl-k8s-chart.fullname" . }}
+  name: {{ include "tinyurl-chart.fullname" . }}
   labels:
-    {{- include "tinyurl-k8s-chart.labels" . | nindent 4 }}
+    {{- include "tinyurl-chart.labels" . | nindent 4 }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
   {{- end }}
   selector:
     matchLabels:
-      {{- include "tinyurl-k8s-chart.selectorLabels" . | nindent 6 }}
+      {{- include "tinyurl-chart.selectorLabels" . | nindent 6 }}
   template:
     metadata:
       {{- with .Values.podAnnotations }}
@@ -18,13 +18,13 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       labels:
-        {{- include "tinyurl-k8s-chart.selectorLabels" . | nindent 8 }}
+        {{- include "tinyurl-chart.selectorLabels" . | nindent 8 }}
     spec:
       {{- with .Values.imagePullSecrets }}
       imagePullSecrets:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      serviceAccountName: {{ include "tinyurl-k8s-chart.serviceAccountName" . }}
+      serviceAccountName: {{ include "tinyurl-chart.serviceAccountName" . }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
@@ -35,16 +35,16 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: 9091
               protocol: TCP
           livenessProbe:
             httpGet:
-              path: /actuator/health
-              port: http
+              path: /actuator/health/liveness
+              port: 9091
           readinessProbe:
             httpGet:
-              path: /actuator/health
-              port: http
+              path: /actuator/health/readiness
+              port: 9091
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}
