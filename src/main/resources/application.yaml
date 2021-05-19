@@ -4,9 +4,9 @@ spring:
       name: "user@tinyurl.com"
       password: "8h&=Yww8NT$zMm2"
   datasource:
-    url: "jdbc:postgresql://localhost:5432/tinyurl"
-    username: postgres
-    password: pwd123
+    url: "jdbc:postgresql://${POSTGRES_SERVICE}:5432/tinyurl"
+    username: "${POSTGRES_DB_USER}"
+    password: "${POSTGRES_DB_PASSWORD}"
     driver-class-name: "org.postgresql.Driver"
 
 server:
@@ -36,17 +36,11 @@ management:
       enabled: true
     readinessstate:
       enabled: true
-  metrics:
-    enable: true
-    use-global-registry: false
-    distribution:
-      percentiles-histogram:
-        http:
-          server:
-            requests: true
 
 
 tinyurl:
   reservation-size: 1000
   identifier-stream: "ZK"
+  zookeeper:
+    connect-string: "${ZK_SERVICE}:2181"
 

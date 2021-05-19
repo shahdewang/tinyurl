@@ -3,11 +3,8 @@
 A sample implementation of the Tiny URL service deployed on Kubernetes.
 
 ---
-<<<<<<< HEAD
-# Environment
-=======
+
 ## Environment
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)
 
 - Kind: `kind v0.10.0 go1.15.7 darwin/amd64`
 - Kubernetes:
@@ -68,48 +65,22 @@ Use the scripts from this [dev-certificates](https://github.com/BenMorel/dev-cer
 
 On macOS, import `ca.crt` into your keychain and update its Trust setting to "Always Trust".
 
-<<<<<<< HEAD
-### Updating `/etc/hosts` with domain names.
-
-```text
-127.0.0.1  prometheus-server.tinyurl.com, grafana.tinyurl.com
-=======
----
-## Deploying `nginx` as ingress controller
-
-### Create a namespace named `ingress-nginx` for monitoring applications.
-
-```shell
-kubectl apply -f k8s/nginx/namespace.yaml
-```
-
-```shell
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
-kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)
-```
-
 ---
 
-<<<<<<< HEAD
-# Deploying Prometheus and Grafana
-
-### Create a namespace named `monitoring` for monitoring applications.
-=======
 ## Deploying Prometheus and Grafana
 
 ### Create a namespace named `monitoring` for monitoring applications.
-
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)
 ```shell
 kubectl apply -f k8s/monitoring/namespace.yaml
 ```
 
-### Deploy prometheus into your cluster with in the `monitoring` namespace and mark it as `prometheus`.
+### Deploy prometheus into your cluster within the `monitoring` namespace and name it as `prometheus`.
 ```shell
 helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
 helm repo update
-<<<<<<< HEAD
+```
+
+```shell
 helm install prometheus prometheus-community/prometheus --namespace monitoring
 ```
 
@@ -128,17 +99,7 @@ prometheus-pushgateway-74cb65b858-jl5dn          1/1     Running   0          3m
 prometheus-server-d9fb67455-t6dsr                2/2     Running   0          3m56s
 ```
 
-### Deploy grafana into your cluster with in the `monitoring` namespace and mark it as `grafana`.
-```shell
-kubectl apply -f k8s/monitoring/grafana/grafana.yaml
-=======
-```
-
-```shell
-helm install prometheus prometheus-community/prometheus --namespace monitoring
-```
-
-### Deploy grafana into your cluster with in the `monitoring` namespace and mark it as `grafana`.
+### Deploy grafana into your cluster within the `monitoring` namespace and name it as `grafana`.
 
 ```shell
 helm repo add grafana https://grafana.github.io/helm-charts
@@ -153,7 +114,6 @@ Once Grafana is intalled, you can retrieve the admin password with the following
 
 ```shell
 kubectl get secret --namespace monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)
 ```
 
 ### Check deployment status
@@ -162,11 +122,12 @@ kubectl get pods -n monitoring
 ```
 
 ```shell
-<<<<<<< HEAD
 NAME                      READY   STATUS    RESTARTS   AGE
 grafana-d5d85bcd6-hrpf4   1/1     Running   0          2m57s
 ```
+
 ---
+
 ### Deploying `nginx` as ingress controller
 
 The first command install the ingress controller. The second waits until the ingress controller has been installed.
@@ -174,7 +135,9 @@ The first command install the ingress controller. The second waits until the ing
 ```shell
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/master/deploy/static/provider/kind/deploy.yaml
 kubectl wait --namespace ingress-nginx --for=condition=ready pod --selector=app.kubernetes.io/component=controller --timeout=90s
-=======
+```
+
+```shell
 NAME                                             READY   STATUS    RESTARTS   AGE
 grafana-65cc7f9746-9cjhq                         1/1     Running   0          2m18s
 prometheus-alertmanager-ccf8f68cd-klz6l          2/2     Running   0          5m33s
@@ -190,19 +153,12 @@ prometheus-server-d9fb67455-jhcsl                2/2     Running   0          5m
 Run the following command from the directory where the certificates were created.
 
 ```shell
-kubectl create secret tls tinyurl-monitoring --key tinyurl.com.key --cert tinyurl.com.crt -n monitoring
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)
+kubectl create secret tls tinyurl-monitoring --key k8s/cert/tinyurl.com.key --cert k8s/cert/tinyurl.com.crt -n monitoring
 ```
 
 Apply ingress rules -
 
 ```shell
-<<<<<<< HEAD
-kubectl apply -f k8s/monitoring/grafana/grafana.yaml
-```
-
-You should be able to access Prometheus and Grafana from your browser using the following URL's -
-=======
 kubectl apply -f k8s/monitoring/ingress-rules.yaml
 ```
 
@@ -213,7 +169,6 @@ kubectl apply -f k8s/monitoring/ingress-rules.yaml
 ```
 
 You should now be able to access Prometheus and Grafana from your browser using the following URL's -
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)
 
 - Prometheus https://prometheus-server.tinyurl.com
 - Grafana https://grafana.tinyurl.com
@@ -224,11 +179,6 @@ You should now be able to access Prometheus and Grafana from your browser using 
   Add a new Data Source and select Prometheus from the list. Set URL to `prometheus-server.monitoring.svc.cluster.local`. Click `Save & Test` and ensure it works.
 
 * Go to Grafana > Dashboards > Manage <br>
-<<<<<<< HEAD
-  Import [NGINX Ingress](https://grafana.com/grafana/dashboards/9614), [Kubernetes Cluster](https://grafana.com/grafana/dashboards/6417) <br> 
-  Similarlym you can search for dashboards and import them.
----
-=======
   Import [Kubernetes Cluster](https://grafana.com/grafana/dashboards/6417) <br> 
   Similarly, you can import other dashboards.
 
@@ -249,7 +199,7 @@ helm repo update
 ```
 
 ```shell
-helm install postgresql bitnami/postgresql -n postgres
+helm install postgresql bitnami/postgresql -n postgres -f k8s/postgres/values.yaml
 ```
 
 Using port-forward connect to the database using local client.
@@ -265,7 +215,7 @@ Execute `k8s/postgres/schema.sql` in
 ## Deploying Zookeeper
 
 ```shell
-kubectl apply -f k8s/zookeeper/ zookeeper.yaml
+kubectl apply -f k8s/zookeeper/zookeeper.yaml
 ```
 
 Sanity test the ensenble. The command below executes the `zkCli.sh` script to write `world` to the path `/hello` on the `zk-0` Pod in the ensemble.
@@ -324,4 +274,3 @@ zkcli -s="127.0.0.1:2181" get /hello
 ---
 
 ## Deploying Tinyurl Service (WIP)
->>>>>>> 49ba4cc (Basic working of tiny-url (untested). Added documentation for Prometheus, Grafana, Postgres and Zookeeper.)

@@ -85,7 +85,7 @@ jooq {
                     driver = 'org.postgresql.Driver'
                     url = 'jdbc:postgresql://localhost:5432/tinyurl'
                     user = 'postgres'
-                    password = 'pwd123'
+                    password = 'kMtq127I8V'
                     properties {
                         property {
                             key = 'ssl'
@@ -129,5 +129,5 @@ docker {
 tasks.named('generateJooq').configure { allInputsDeclared = true }
 
 gitProperties {
-    gitRepositoryRoot = new File("${project.rootDir}/..")
+    gitRepositoryRoot = new File("${project.rootDir}")
 }
