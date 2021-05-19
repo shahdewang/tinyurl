@@ -45,6 +45,27 @@ spec:
             httpGet:
               path: /actuator/health/readiness
               port: 9091
+          env:
+            - name: POSTGRES_SERVICE
+              valueFrom:
+                configMapKeyRef:
+                  name: service-config
+                  key: POSTGRES_SERVICE
+            - name: ZK_SERVICE
+              valueFrom:
+                configMapKeyRef:
+                  name: service-config
+                  key: ZK_SERVICE
+            - name: POSTGRES_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: db-security
+                  key: POSTGRES_DB_USER
+            - name: POSTGRES_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: db-security
+                  key: POSTGRES_DB_PASSWORD
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.nodeSelector }}

@@ -208,8 +208,6 @@ Using port-forward connect to the database using local client.
 kubectl port-forward --address localhost service/postgresql 5432:5432 -n postgres
 ```
 
-Execute `k8s/postgres/schema.sql` in 
-
 ---
 
 ## Deploying Zookeeper
@@ -274,3 +272,38 @@ zkcli -s="127.0.0.1:2181" get /hello
 ---
 
 ## Deploying Tinyurl Service (WIP)
+
+Create configmap with Postgresql and Zookeeper configuration that can be stored as literal.
+
+```shell
+kubectl create configmap service-config --from-literal=POSTGRES_SERVICE="postgresql.postgres.svc.cluster.local" --from-literal=POSTGRES_DB_USER=postgres --from-literal=ZK_SERVICE="zk-cs" 
+```
+
+Execute the following commands to create a secret to store Postgresql connection parameters.
+
+```shell
+POSTGRES_PASSWORD=$(kubectl get secret --namespace postgres postgresql -o jsonpath="{.data.postgresql-password}" | base64 --decode)
+kubectl create secret generic db-security --from-literal=POSTGRES_DB_USER=postgres --from-literal=POSTGRES_DB_PASSWORD=${POSTGRES_PASSWORD}
+```
+
+Building an image of TinyURL service and uploading it to Kind cluster.
+
+```shell
+./gradlew dockerBuildImage
+kind load docker-image bufferstack/tinyurl:latest
+```
+
+Deploy TinuURL service.
+
+```shell
+kubectl create secret tls tinyurl-service --key k8s/cert/tinyurl.com.key --cert k8s/cert/tinyurl.com.crt
+helm install tinyurl tinyurl-chart
+```
+
+Update `/etc/hosts` with following entry.
+
+```text
+127.0.0.1  prometheus-server.tinyurl.com, grafana.tinyurl.com, service.tinyurl.com
+```
+
+The TinyURL Swagger page is accessible at [https://service.tinyurl.com/swagger-ui.html](https://service.tinyurl.com/swagger-ui.html).
