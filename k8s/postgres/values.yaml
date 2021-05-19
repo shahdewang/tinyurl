@@ -1,0 +1,22 @@
+global:
+  postgresql:
+    postgresqlDatabase: tinyurl
+
+initdbScripts:
+  init.sql: |
+    create database tinyurl;
+    create table url_mapping (code varchar(25), full_url varchar(2084), primary key (code));
+
+
+metrics:
+  enabled: true
+  service:
+    type: ClusterIP
+    annotations:
+      prometheus.io/scrape: 'true'
+      prometheus.io/port: '9190'
+    loadBalancerIP:
+    serviceMonitor:
+      enabled: true
+      additionalLabels: { }
+      namespace: monitoring
