@@ -25,12 +25,25 @@ group = 'com.bufferstack'
 version = '1.0'
 sourceCompatibility = '11'
 
+sourceSets {
+    integrationTest {
+        java {
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+            srcDir file('src/test-intg/java')
+        }
+        resources.srcDir file('src/test-intg/resources')
+    }
+}
+
 repositories {
     mavenCentral()
 }
 
 ext {
     jacksonVersion = "2.12.3"
+    postgresqlVersion = "42.2.14"
+    testcontainersVersion = "1.15.3"
 }
 
 dependencies {
@@ -59,8 +72,9 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
 
     runtimeOnly 'org.postgresql:postgresql'
-
-    jooqGenerator 'org.postgresql:postgresql:42.2.14'
+    jooqGenerator 'com.h2database:h2:1.4.200'
+    jooqGenerator 'org.jooq:jooq-meta:3.14.11'
+    jooqGenerator 'org.jooq:jooq-meta-extensions:3.14.11'
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
 
@@ -72,7 +86,7 @@ test {
 }
 
 jooq {
-    version = '3.14.7'  // default (can be omitted)
+    version = '3.14.11'  // default (can be omitted)
     edition = nu.studer.gradle.jooq.JooqEdition.OSS  // default (can be omitted)
 
     configurations {
@@ -82,29 +96,29 @@ jooq {
             generationTool {
                 logging = org.jooq.meta.jaxb.Logging.WARN
                 jdbc {
-                    driver = 'org.postgresql.Driver'
-                    url = 'jdbc:postgresql://localhost:5432/tinyurl'
-                    user = 'postgres'
-                    password = 'kMtq127I8V'
-                    properties {
-                        property {
-                            key = 'ssl'
-                            value = 'false'
-                        }
-                    }
+                    driver = 'org.h2.Driver'
+                    url = 'jdbc:h2:~/test-gradle'
+                    user = 'sa'
+                    password = ''
                 }
                 generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
                     database {
-                        name = 'org.jooq.meta.postgres.PostgresDatabase'
-                        inputSchema = 'public'
+                        //name = 'org.jooq.meta.h2.H2Database'
+                        name = 'org.jooq.meta.extensions.ddl.DDLDatabase'
+                        includes = '.*'
+                        properties {
+                            property {
+                                key = 'scripts'
+                                value = 'src/main/resources/db.sql'
+                            }
+                        }
                     }
                     generate {
                         deprecated = false
                         records = true
                         immutablePojos = true
                         fluentSetters = true
-                        javaTimeTypes = true
                     }
                     target {
                         packageName = 'com.bufferstack.tinuyrl.jooq'
@@ -116,6 +130,7 @@ jooq {
         }
     }
 }
+
 
 docker {
     springBootApplication {
