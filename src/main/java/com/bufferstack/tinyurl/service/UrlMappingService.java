@@ -1,16 +1,13 @@
 package com.bufferstack.tinyurl.service;
 
 import com.bufferstack.tinuyrl.jooq.Tables;
-import com.bufferstack.tinuyrl.jooq.tables.records.UrlMappingRecord;
 import com.bufferstack.tinyurl.exception.MappingNotFoundException;
 import com.bufferstack.tinyurl.models.TinyUrlMapping;
-import com.bufferstack.tinyurl.zookeeper.IdentifierStream;
+import com.bufferstack.tinyurl.generator.IdentifierStream;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import org.jooq.DSLContext;
 import org.jooq.Record;
-import org.jooq.Record2;
-import org.jooq.Result;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -28,7 +25,7 @@ public class UrlMappingService {
 
     public TinyUrlMapping addLink(String fullUrl) {
         String code = identifierStream.next();
-        OffsetDateTime createdAt =  OffsetDateTime.ofInstant(clock.instant(), clock.getZone());
+        OffsetDateTime createdAt = OffsetDateTime.ofInstant(clock.instant(), clock.getZone());
         dslContext
                 .insertInto(Tables.URL_MAPPING)
                 .set(Tables.URL_MAPPING.CODE, code)

@@ -1,8 +1,8 @@
 package com.bufferstack.tinyurl.config;
 
 import com.bufferstack.tinyurl.utils.ObjectMapperFactory;
-import com.bufferstack.tinyurl.zookeeper.IdentifierStream;
-import com.bufferstack.tinyurl.zookeeper.IdentifierStreamFactory;
+import com.bufferstack.tinyurl.generator.IdentifierStream;
+import com.bufferstack.tinyurl.generator.IdentifierStreamFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;

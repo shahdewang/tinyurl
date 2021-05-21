@@ -1,4 +1,4 @@
-package com.bufferstack.tinyurl.zookeeper;
+package com.bufferstack.tinyurl.generator;
 
 public interface IdentifierStream<T> {
 
