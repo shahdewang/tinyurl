@@ -8,7 +8,6 @@ import com.bufferstack.tinyurl.models.TinyUrlMapping;
 import com.bufferstack.tinyurl.utils.TestUtils;
 import java.time.Clock;
 import java.time.OffsetDateTime;
-import org.jooq.Condition;
 import org.jooq.DSLContext;
 import org.jooq.InsertSetMoreStep;
 import org.jooq.InsertSetStep;
