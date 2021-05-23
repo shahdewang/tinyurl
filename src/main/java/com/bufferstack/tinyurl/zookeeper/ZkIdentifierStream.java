@@ -1,10 +1,12 @@
 package com.bufferstack.tinyurl.zookeeper;
 
 import com.bufferstack.tinyurl.generator.IdentifierStream;
+import com.evanlennick.retry4j.CallExecutor;
 import com.evanlennick.retry4j.CallExecutorBuilder;
 import com.evanlennick.retry4j.config.RetryConfig;
 import com.evanlennick.retry4j.config.RetryConfigBuilder;
 import com.evanlennick.retry4j.exception.RetriesExhaustedException;
+import com.google.common.annotations.VisibleForTesting;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
@@ -37,17 +39,22 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
     private final Counter initExceptionCounter;
     private final Timer initTimer;
 
-    private final RetryConfig retryConfig;
+    private final CallExecutor<Boolean> callExecutor;
 
-    private ZkIdentifierStream(CuratorFramework zkClient, int reservationSize, MeterRegistry registry) {
+    @VisibleForTesting
+    ZkIdentifierStream(CuratorFramework zkClient, int reservationSize, MeterRegistry registry) {
         this.zkClient = zkClient;
         this.reservationSize = reservationSize;
 
-        retryConfig = new RetryConfigBuilder()
+        RetryConfig retryConfig = new RetryConfigBuilder()
                 .retryOnAnyException()
                 .withMaxNumberOfTries(3)
                 .withDelayBetweenTries(200, ChronoUnit.MILLIS)
                 .withExponentialBackoff()
+                .build();
+
+        callExecutor = new CallExecutorBuilder<Boolean>()
+                .config(retryConfig)
                 .build();
 
         getValueExceptionCounter = Counter.builder("identifierStream")
@@ -83,17 +90,15 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
     }
 
     @SuppressWarnings("unchecked")
-    private void init() {
+    @VisibleForTesting
+    void init() {
         initTimer.record(() -> {
             Callable<Boolean> callable = () -> {
                 initializeCounter();
                 return true;
             };
             try {
-                new CallExecutorBuilder<Boolean>()
-                        .config(retryConfig)
-                        .build()
-                        .execute(callable);
+                callExecutor.execute(callable);
             } catch (RetriesExhaustedException e) {
                 logger.error("Retries exhausted during initialization", e);
                 initExceptionCounter.increment();
@@ -107,27 +112,26 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
     }
 
     private void initializeCounter() {
-        DistributedAtomicInteger counter = new DistributedAtomicInteger(zkClient, "/tinyurl_id",
-                new ExponentialBackoffRetry(250, 3));
+        DistributedAtomicInteger counter = aDistributedAtomicInteger();
 
         AtomicValue<Integer> atomicValue;
         try {
             atomicValue = counter.get();
         } catch (Exception e) {
             logger.error("Error when attempting to retrieve current value", e);
-            atomicValue = null;
             getValueExceptionCounter.increment();
+            throw new RuntimeException("Unable to get current value.", e);
         }
 
         if (atomicValue != null) {
             if (!atomicValue.succeeded()) {
                 getValueExceptionCounter.increment();
-                throw new RuntimeException("Unable to retrive current value.");
+                throw new RuntimeException("Attenpt to get current value failed.");
             }
 
             try {
                 AtomicInteger _currValue = new AtomicInteger(atomicValue.preValue() + 1);
-                int _lastValue = atomicValue.postValue();
+                int _lastValue = _currValue.get() + reservationSize;
                 int newValue = atomicValue.preValue() + reservationSize;
                 counter.compareAndSet(atomicValue.preValue(), newValue);
                 currentValue = _currValue;
@@ -138,6 +142,11 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
                 setValueExceptionCounter.increment();
             }
         }
+    }
+
+    DistributedAtomicInteger aDistributedAtomicInteger() {
+        return new DistributedAtomicInteger(zkClient, "/tinyurl_id",
+                new ExponentialBackoffRetry(250, 3));
     }
 
     public static class ZkIdentifierStreamBuilder {
