@@ -42,6 +42,7 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
     private final CallExecutor<Boolean> callExecutor;
 
     @VisibleForTesting
+    @SuppressWarnings("unchecked")
     ZkIdentifierStream(CuratorFramework zkClient, int reservationSize, MeterRegistry registry) {
         this.zkClient = zkClient;
         this.reservationSize = reservationSize;
@@ -138,8 +139,9 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
                 lastValue = _lastValue;
                 ready = true;
             } catch (Exception e) {
-                logger.error("Error when attempting to update the new value ", e);
+                logger.error("Error when attempting to update the new value", e);
                 setValueExceptionCounter.increment();
+                throw new RuntimeException("Error when attempting to update the new value.", e);
             }
         }
     }
