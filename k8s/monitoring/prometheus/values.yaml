@@ -1,4 +1,32 @@
-kubeStateMetrics:
-  enabled: true
+server:
+  global:
+    scrape_interval: 10s
 
 extraScrapeConfigs: |
+  - job_name: 'tinyurl-actuator'
+    metrics_path: '/actuator/prometheus'
+    scrape_interval: 10s
+    basic_auth:
+      username: "user@tinyurl.com"
+      password: "8h&=Yww8NT$zMm2"
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - default
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        action: replace
+        target_label: namespace
+      - source_labels: [__meta_kubernetes_pod_name]
+        action: replace
+        target_label: pod
+      - source_labels: [__address__]
+        action: replace
+        regex: ([^:]+)(?::\d+)?
+        replacement: ${1}:9091
+        target_label: __address__
+      - source_labels: [__meta_kubernetes_pod_annotation_app]
+        action: keep
+        regex: tinyurl
+
