@@ -1,0 +1,37 @@
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+    datasources:
+      - name: Prometheus
+        type: prometheus
+        access: proxy
+        orgId: 1
+        url: "http://prometheus-server.monitoring.svc.cluster.local"
+
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      - name: 'default'
+        orgId: 1
+        folder: ''
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+dashboards:
+  default:
+    kubernetes-cluster-monitoring:
+      # Ref: https://grafana.com/dashboards/3119 - Kubernetes cluster monitoring (via Prometheus)
+      gnetId: 3119
+      revision: 2
+      datasource: Prometheus
+    kubernetes-cluster:
+      # Ref: https://grafana.com/dashboards/6417 - Kubernetes cluster
+      gnetId: 6417
+      revision: 1
+      datasource: Prometheus
+
