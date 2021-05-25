@@ -81,7 +81,7 @@ helm repo update
 ```
 
 ```shell
-helm install prometheus prometheus-community/prometheus --namespace monitoring
+helm install prometheus prometheus-community/prometheus --namespace monitoring -f k8s/monitoring/prometheus/values.yaml
 ```
 
 ### Check deployment status
@@ -107,7 +107,7 @@ helm repo update
 ```
 
 ```shell
-helm install grafana grafana/grafana --namespace monitoring
+helm install grafana grafana/grafana --namespace monitoring -f k8s/monitoring/grafana/values.yaml
 ```
 
 Once Grafana is intalled, you can retrieve the admin password with the following command -
@@ -172,15 +172,6 @@ You should now be able to access Prometheus and Grafana from your browser using 
 
 - Prometheus https://prometheus-server.tinyurl.com
 - Grafana https://grafana.tinyurl.com
-
-### Configuring Data Sources and Dashboards in Grafana
-
-* Go to Settings > Data Sources <br>
-  Add a new Data Source and select Prometheus from the list. Set URL to `prometheus-server.monitoring.svc.cluster.local`. Click `Save & Test` and ensure it works.
-
-* Go to Grafana > Dashboards > Manage <br>
-  Import [Kubernetes Cluster](https://grafana.com/grafana/dashboards/6417) <br> 
-  Similarly, you can import other dashboards.
 
 ---
 
@@ -271,7 +262,7 @@ zkcli -s="127.0.0.1:2181" get /hello
 
 ---
 
-## Deploying Tinyurl Service (WIP)
+## Deploying Tinyurl Service
 
 Create configmap with Postgresql and Zookeeper configuration that can be stored as literal.
 
