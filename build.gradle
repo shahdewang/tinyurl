@@ -22,7 +22,7 @@ plugins {
 apply plugin: 'com.gorylenko.gradle-git-properties'
 
 group = 'com.bufferstack'
-version = '1.0'
+version = '1.2'
 sourceCompatibility = '11'
 
 sourceSets {
@@ -46,16 +46,36 @@ ext {
     testcontainersVersion = "1.15.3"
 }
 
+configurations {
+    all {
+//        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+//        exclude group: 'ch.qos.logback', module: 'logback-classic'
+        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+    }
+}
+
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-jooq'
     implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 
     implementation 'org.springdoc:springdoc-openapi-ui:1.5.2'
 
-    implementation 'org.apache.curator:curator-framework:5.1.0'
-    implementation 'org.apache.curator:curator-recipes:5.1.0'
+    // Note: ZooKeeper 3.4.x is now at end-of-life. Consequently, the latest versions of Curator have removed
+    // support for it. If you wish to use Curator with ZooKeeper 3.4.x you should pin to version 4.2.x of Curator.
+    // Curator 4.2.x supports ZooKeeper 3.4.x ensembles in a soft-compatibility mode. To use this mode you must exclude
+    // ZooKeeper when adding Curator to your dependency management tool.
+    // source: https://curator.apache.org/zk-compatibility-34.html
+    implementation ('org.apache.zookeeper:zookeeper:3.4.10') {
+        exclude group: 'org.slf4j', module: 'slf4j-log4j12'
+    }
+    implementation 'org.apache.curator:curator-framework:4.2.0'
+    implementation ('org.apache.curator:curator-recipes:4.2.0') {
+        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
+    }
+
     implementation 'org.zalando:problem-spring-web:0.23.0'
     implementation 'com.evanlennick:retry4j:0.15.0'
 
@@ -135,7 +155,7 @@ jooq {
 docker {
     springBootApplication {
         baseImage = 'adoptopenjdk/openjdk11:jdk-11.0.2.9-alpine-slim'
-        images = ['bufferstack/tinyurl:latest']
+        images = ["bufferstack/tinyurl:${version}"]
         jvmArgs = []
     }
 }

@@ -10,7 +10,7 @@ import org.apache.curator.framework.recipes.atomic.DistributedAtomicInteger;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.Mockito.doNothing;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.spy;
@@ -28,82 +28,100 @@ public class ZkIdentiferStreamTest {
     public void shouldInitializeIdentifierStream() throws Exception {
         DistributedAtomicInteger distributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(distributedAtomicInteger);
-        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 0, 1));
+        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 0, null));
+        when(distributedAtomicInteger.initialize(10)).thenReturn(true);
         identifierStream.init();
 
-        verify(distributedAtomicInteger).compareAndSet(0, 10);
+        verify(distributedAtomicInteger).initialize(10);
+        verify(distributedAtomicInteger, never()).compareAndSet(0, 10);
     }
 
     @Test
     public void shouldInitializeIdentifierStreamAndIncrementCounter() throws Exception {
         DistributedAtomicInteger distributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(distributedAtomicInteger);
-        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 0, 1));
+        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 100, null));
+        when(distributedAtomicInteger.compareAndSet(100, 110)).thenReturn(new AtomicInteger(true, 100, 100));
         identifierStream.init();
 
-        verify(distributedAtomicInteger).compareAndSet(0, 10);
-        IntStream.range(1, 11).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
+        verify(distributedAtomicInteger, never()).initialize(any());
+        verify(distributedAtomicInteger).compareAndSet(100, 110);
+        IntStream.range(101, 111).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
     }
 
     @Test
     public void shouldReinitializeIdentifierStream() throws Exception {
         DistributedAtomicInteger distributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(distributedAtomicInteger);
-        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 0, 1));
+        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 100, null));
+        when(distributedAtomicInteger.compareAndSet(100, 110)).thenReturn(new AtomicInteger(true, 100, 100));
         identifierStream.init();
 
-        verify(distributedAtomicInteger).compareAndSet(0, 10);
-        IntStream.range(1, 11).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
+        verify(distributedAtomicInteger, never()).initialize(any());
+        verify(distributedAtomicInteger).compareAndSet(100, 110);
+        IntStream.range(101, 111).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
 
         DistributedAtomicInteger nextDistributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(nextDistributedAtomicInteger);
-        when(nextDistributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 10, 20));
+        when(nextDistributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 110, null));
+        when(nextDistributedAtomicInteger.compareAndSet(110, 120)).thenReturn(new AtomicInteger(true, 110, 120));
 
         identifierStream.next();
-        verify(nextDistributedAtomicInteger).compareAndSet(10, 20);
+        verify(nextDistributedAtomicInteger).compareAndSet(110, 120);
     }
 
     @Test
     public void shouldReinitializeIdentifierStreamOnRetry() throws Exception {
         DistributedAtomicInteger distributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(distributedAtomicInteger);
-        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 0, 1));
+        when(distributedAtomicInteger.get())
+                .thenReturn(new AtomicInteger(true, 100, null));
+        when(distributedAtomicInteger.compareAndSet(100, 110))
+                .thenReturn(new AtomicInteger(true, 100, 100));
         identifierStream.init();
 
-        verify(distributedAtomicInteger).compareAndSet(0, 10);
-        IntStream.range(1, 11).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
+        verify(distributedAtomicInteger, never()).initialize(any());
+        verify(distributedAtomicInteger).compareAndSet(100, 110);
+        IntStream.range(101, 111).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
 
         DistributedAtomicInteger nextDistributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(nextDistributedAtomicInteger);
         when(nextDistributedAtomicInteger.get())
-                .thenReturn(new AtomicInteger(false, 10, 20))
-                .thenReturn(new AtomicInteger(true, 20, 30));
+                .thenReturn(new AtomicInteger(false, 110, 120))
+                .thenReturn(new AtomicInteger(true, 120, 130));
+        when(nextDistributedAtomicInteger.compareAndSet(120, 130))
+                .thenReturn(new AtomicInteger(true, 120, 130));
 
         identifierStream.next();
-        verify(nextDistributedAtomicInteger).compareAndSet(20, 30);
+        verify(nextDistributedAtomicInteger).compareAndSet(120, 130);
     }
 
     @Test
-    public void shouldReinitializeIdentifierStreamOnRetry_1() throws Exception {
+    public void shouldReinitializeIdentifierStreamOnRetryForCompareAndSetFailure() throws Exception {
         DistributedAtomicInteger distributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(distributedAtomicInteger);
-        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 0, 1));
+        when(distributedAtomicInteger.get()).thenReturn(new AtomicInteger(true, 100, null));
+        when(distributedAtomicInteger.compareAndSet(100, 110))
+                .thenReturn(new AtomicInteger(true, 100, 110));
         identifierStream.init();
 
-        verify(distributedAtomicInteger).compareAndSet(0, 10);
-        IntStream.range(1, 11).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
+        verify(distributedAtomicInteger, never()).initialize(any());
+        verify(distributedAtomicInteger).compareAndSet(100, 110);
+        IntStream.range(101, 111).forEach(i -> assertEquals(String.valueOf(i), identifierStream.next()));
 
         DistributedAtomicInteger nextDistributedAtomicInteger = mock(DistributedAtomicInteger.class);
         when(identifierStream.aDistributedAtomicInteger()).thenReturn(nextDistributedAtomicInteger);
         when(nextDistributedAtomicInteger.get())
-                .thenReturn(new AtomicInteger(true, 20, 30))
-                .thenReturn(new AtomicInteger(true, 30, 40));
-        when(nextDistributedAtomicInteger.compareAndSet(20, 30))
-                .thenThrow(new RuntimeException("Set failed!"));
+                .thenReturn(new AtomicInteger(true, 120, 130))
+                .thenReturn(new AtomicInteger(true, 130, 140));
+        when(nextDistributedAtomicInteger.compareAndSet(120, 130))
+                .thenReturn(new AtomicInteger(false, null, null));
+        when(nextDistributedAtomicInteger.compareAndSet(130, 140))
+                .thenReturn(new AtomicInteger(true, 130, 140));
 
         identifierStream.next();
-        verify(nextDistributedAtomicInteger).compareAndSet(20, 30);
-        verify(nextDistributedAtomicInteger).compareAndSet(30, 40);
+        verify(nextDistributedAtomicInteger).compareAndSet(120, 130);
+        verify(nextDistributedAtomicInteger).compareAndSet(130, 140);
     }
 
     private static class AtomicInteger implements AtomicValue<Integer> {
