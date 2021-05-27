@@ -90,7 +90,6 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
         return ready;
     }
 
-    @SuppressWarnings("unchecked")
     @VisibleForTesting
     void init() {
         initTimer.record(() -> {
@@ -134,7 +133,19 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
                 AtomicInteger _currValue = new AtomicInteger(atomicValue.preValue() + 1);
                 int _lastValue = _currValue.get() + reservationSize;
                 int newValue = atomicValue.preValue() + reservationSize;
-                counter.compareAndSet(atomicValue.preValue(), newValue);
+
+                if (atomicValue.preValue() == 0) {
+                    boolean initialized = counter.initialize(newValue);
+                    if (!initialized) {
+                        throw new RuntimeException("Initialization failed.");
+                    }
+                } else {
+                    AtomicValue<Integer> updatedValue = counter.compareAndSet(atomicValue.preValue(), newValue);
+                    if (!updatedValue.succeeded()) {
+                        throw new RuntimeException("Setting of value failed");
+                    }
+                }
+
                 currentValue = _currValue;
                 lastValue = _lastValue;
                 ready = true;
@@ -147,7 +158,7 @@ public class ZkIdentifierStream implements IdentifierStream<String> {
     }
 
     DistributedAtomicInteger aDistributedAtomicInteger() {
-        return new DistributedAtomicInteger(zkClient, "/tinyurl_id",
+        return new DistributedAtomicInteger(zkClient, "/tinyurlId",
                 new ExponentialBackoffRetry(250, 3));
     }
 

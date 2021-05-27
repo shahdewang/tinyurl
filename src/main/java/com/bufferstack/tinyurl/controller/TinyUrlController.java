@@ -21,7 +21,7 @@ public class TinyUrlController {
         this.urlMappingService = urlMappingService;
     }
 
-    @PostMapping(consumes = APPLICATION_JSON_VALUE)
+    @PostMapping
     public TinyUrlMapping addLink(@RequestBody String fullUrl) {
         return urlMappingService.addLink(fullUrl);
     }

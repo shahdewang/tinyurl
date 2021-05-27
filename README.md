@@ -291,6 +291,12 @@ kubectl create secret tls tinyurl-service --key k8s/cert/tinyurl.com.key --cert 
 helm install tinyurl tinyurl-chart
 ```
 
+Apply ingress rules -
+
+```shell
+kubectl apply -f k8s/service-ingress.yaml
+```
+
 Update `/etc/hosts` with following entry.
 
 ```text

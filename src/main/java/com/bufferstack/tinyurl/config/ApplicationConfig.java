@@ -35,7 +35,7 @@ public class ApplicationConfig {
         client.getUnhandledErrorListenable()
                 .addListener((message, e) -> { throw new RuntimeException(message); });
         client.getConnectionStateListenable()
-                .addListener((c, newState) -> { logger.debug("Zookeeper state changed: " + newState); });
+                .addListener((c, newState) -> logger.debug("Zookeeper state changed: " + newState));
         client.start();
         return client;
     }
