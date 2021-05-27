@@ -46,7 +46,7 @@ service:
     prometheus.io/port: 9091
 
 ingress:
-  enabled: true
+  enabled: false
   annotations:
      kubernetes.io/ingress.class: nginx
   hosts:
