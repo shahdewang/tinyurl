@@ -304,3 +304,14 @@ Update `/etc/hosts` with following entry.
 ```
 
 The TinyURL Swagger page is accessible at [https://service.tinyurl.com/swagger-ui.html](https://service.tinyurl.com/swagger-ui.html).
+
+---
+
+## Running Load Test
+
+I used [K6](https://k6.io) to run load test. Install K6 command line tool as per the instructions and run the following 
+command from `load-test` directory to run the scenario.
+
+```shell
+k6 run --insecure-skip-tls-verify --max-redirects 0 script.js
+```
