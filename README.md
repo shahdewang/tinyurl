@@ -33,7 +33,7 @@ serverVersion:
 
 ### Kubernetes Cluster
 
-I used Kind to set up my Kubernetes cluster. Here's the configuration file, `kind-condig.yaml`, for my cluster.
+I used Kind to set up my Kubernetes cluster. Here's the configuration file, `kind-config.yaml`, for my cluster.
 
 ```yaml
 kind: Cluster
